@@ -120,3 +120,6 @@ reload_lock~.meta
 
 # Unity crash dumps
 mono_crash.mem.*.blob
+
+# spooky secret private stuff that I'm not publically releasing
+Assets/Script/Menu/Marketplace/Stores/ChorusEncore*
