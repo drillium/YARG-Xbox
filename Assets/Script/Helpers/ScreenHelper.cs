@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using YARG.Core.Logging;
 using YARG.Menu.Settings;
@@ -22,11 +22,13 @@ namespace YARG.Helpers
 
                 // Update screen resolution when the screen changes
                 var screenResolution = GetScreenResolution();
-                if (IsResolutionChanged(screenResolution, _lastScreenResolution))
+                if (screenResolution.width != _lastScreenResolution.width ||
+                    screenResolution.height != _lastScreenResolution.height ||
+                    screenResolution.refreshRate != _lastScreenResolution.refreshRate)
                 {
                     _lastScreenResolution = screenResolution;
 
-                    YargLogger.LogFormatDebug("Updating default screen resolution to {0}", screenResolution);
+                    //YargLogger.LogFormatDebug("Updating default screen resolution to {0}", screenResolution);
 
                     // Automatically update resolution if set to default and we're in fullscreen
                     if (SettingsManager.Settings.Resolution.Value == null &&
@@ -46,24 +48,16 @@ namespace YARG.Helpers
             };
         }
 
-        private static bool IsResolutionChanged(Resolution a, Resolution b)
-        {
-            return a.height != b.height || a.width != b.width ||
-                a.refreshRateRatio.numerator != b.refreshRateRatio.numerator ||
-                a.refreshRateRatio.denominator != b.refreshRateRatio.denominator;
-        }
-
         /// <summary>
         /// Retrieves the resolution of the screen currently being used for the game.
         /// </summary>
         public static Resolution GetScreenResolution()
         {
-            var screenInfo = Screen.mainWindowDisplayInfo;
             return new Resolution()
             {
-                width = screenInfo.width,
-                height = screenInfo.height,
-                refreshRateRatio = screenInfo.refreshRate,
+                width = Screen.width,
+                height = Screen.height,
+                refreshRate = Screen.currentResolution.refreshRate,
             };
         }
 
@@ -72,9 +66,9 @@ namespace YARG.Helpers
         /// </summary>
         public static void SetResolution(Resolution resolution)
         {
-            YargLogger.LogFormatDebug("Changing screen resolution to {0}", resolution);
+            //YargLogger.LogFormatDebug("Changing screen resolution to {0}", resolution);
             var fullscreenMode = SettingsManager.Settings?.FullscreenMode.Value ?? FullScreenMode.FullScreenWindow;
-            Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRateRatio);
+            Screen.SetResolution(resolution.width, resolution.height, fullscreenMode, resolution.refreshRate);
         }
     }
 }
