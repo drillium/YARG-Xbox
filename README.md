@@ -59,7 +59,7 @@ This is a fan-made fork of YARG made to run on Xbox One / Series consoles using 
 
 1. Make sure your Xbox console is in the Developer sandbox environment with an internet connection and an available account. If you haven't used Dev Mode before, there are many guides by the homebrew community such as the [Dev Mode Wiki](https://wiki.sternserv.xyz/).<br>(Note, The YARG Xbox project is not affiliated with the wiki.)
 
-2. Download the YARG .appx file from the latest release in the [Releases tab](https://github.com/gingerphoenix10/YARG-Xbox/Releases/Latest)
+2. Download the YARG .appx file from the latest release in the [Releases tab](https://github.com/gingerphoenix10/YARG-Xbox/releases/latest)
 
 3. Log into your Xbox Device Portal by accessing the IP address shown in the Dev Home (commonly <a>h</a>ttps://192.168.x.xxx:11443). This may require you to set up a login in the Remote Access Settings on your console.
 
