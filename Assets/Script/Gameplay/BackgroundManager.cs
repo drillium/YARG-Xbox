@@ -65,6 +65,7 @@ namespace YARG.Gameplay
             switch (_type)
             {
                 case BackgroundType.Yarground:
+                    //return;
                     var bundle = AssetBundle.LoadFromStream(result.Stream);
                     AssetBundle shaderBundle = null;
 
@@ -130,6 +131,7 @@ namespace YARG.Gameplay
                     }
 
                     var bgInstance = Instantiate(bg);
+                    bgInstance.transform.position = Vector3.zero;
                     var bundleBackgroundManager = bgInstance.GetComponent<BundleBackgroundManager>();
                     bundleBackgroundManager.Bundle = bundle;
                     bundleBackgroundManager.ShaderBundle = shaderBundle;

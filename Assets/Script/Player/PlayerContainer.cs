@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
 using PlasticBand.Devices;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using YARG.Core;
 using YARG.Core.Game;
 using YARG.Core.Logging;
@@ -237,9 +238,12 @@ namespace YARG.Player
         private static void OnDeviceAdded(InputDevice device)
         {
             foreach (var player in _players)
-            {
                 player.Bindings.OnDeviceAdded(device);
-            }
+
+#if UNITY_STANDALONE
+            if (!SettingsManager.Settings.AutoCreateProfiles.Value)
+                return;
+#endif
 
             _ = TryCreateProfile(device);
         }
@@ -461,7 +465,7 @@ namespace YARG.Player
                 return false;
             }
 
-            if (device is (Keyboard or Mouse))
+            if (device is (Keyboard or Mouse or XRHMD))
             {
                 // Add a check for the default Keyboard/Mouse/whatever devices here so we can enable the toast
                 // ToastManager.ToastWarning("Automatic profile creation is not supported for this device!");

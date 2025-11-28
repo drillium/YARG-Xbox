@@ -126,7 +126,7 @@ namespace YARG.Song
         public static async UniTask RunRefresh(bool quick, LoadingContext? context = null)
 #nullable disable
         {
-
+#if !UNITY_STANDALONE
             if (!SettingsManager.Settings.SongFolders.Contains(internalSongsPath))
             {
                 SettingsManager.Settings.SongFolders.Add(internalSongsPath);
@@ -134,7 +134,7 @@ namespace YARG.Song
                     Directory.CreateDirectory(internalSongsPath);
 
             }
-
+#endif
             var directories = new List<string>(SettingsManager.Settings.SongFolders);
             string setlistPath = PathHelper.SetlistPath;
             if (!string.IsNullOrEmpty(setlistPath) && !directories.Contains(setlistPath))

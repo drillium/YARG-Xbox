@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -212,6 +212,12 @@ namespace YARG.Gameplay
 
         private void Update()
         {
+            if (UnityEngine.XR.XRSettings.enabled)
+            {
+                Destroy(_renderCamera);
+                enabled = false;
+                return;
+            }
             var stack = VolumeManager.instance.stack;
 
             VolumeManager.instance.Update(_renderCamera.gameObject.transform, _venueLayerMask);
