@@ -100,7 +100,7 @@ namespace YARG.Audio.BASS
             YargLogger.LogInfo("Initializing BASS...");
             string bassPath = GetBassDirectory();
             string opusLibDirectory = Path.Combine(bassPath, "bassopus");
-#if UNITY_WSA && !UNITY_EDITOR
+#if ENABLE_IL2CPP && !UNITY_EDITOR
             opusLibDirectory = "bassopus";
 #endif
 
@@ -381,6 +381,22 @@ namespace YARG.Audio.BASS
 #endif
 #endif
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ARCH_ARM64
+        pluginDirectory = Path.Combine(pluginDirectory, "Android/arm64");
+#elif UNITY_ARCH_ARMV7
+        pluginDirectory = Path.Combine(pluginDirectory, "Android/armv7");
+#elif UNITY_ARCH_X86
+        pluginDirectory = Path.Combine(pluginDirectory, "Android/x86");
+#elif UNITY_ARCH_X86_64
+        pluginDirectory = Path.Combine(pluginDirectory, "Android/x86_64");
+#endif
+#endif
+
+#if UNITY_IOS && !UNITY_EDITOR
+    pluginDirectory = Path.Combine(pluginDirectory, "iOS/armv7")
+#endif
+
             // UWP weirdness
 #if UNITY_WSA && !UNITY_EDITOR
             pluginDirectory = Path.Combine(Application.dataPath).ToString();
@@ -429,7 +445,7 @@ namespace YARG.Audio.BASS
             // https://www.un4seen.com/forum/?topic=20148.msg140872#msg140872
             const BassFlags streamFlags = BassFlags.Prescan | BassFlags.Decode | BassFlags.AsyncFile | (BassFlags) 64;
 
-#if UNITY_WSA
+#if ENABLE_IL2CPP && !UNITY_EDITOR
             IntPtr user = ILBassStreamProcedures.CreateUserData(stream);;
             streamHandle = Bass.CreateStream(StreamSystem.NoBuffer, streamFlags, ILBassStreamProcedures.Callbacks, user);
 #else

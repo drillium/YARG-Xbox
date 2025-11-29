@@ -105,8 +105,6 @@ namespace YARG
         {
             SettingsManager.LoadSettings();
             InputManager.Initialize();
-
-            LoadScene(SceneIndex.Menu);
         }
 
 #if UNITY_EDITOR

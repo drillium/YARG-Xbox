@@ -11,13 +11,13 @@ using Windows.Foundation;
 using System.Threading.Tasks;
 using Windows.UI.Core;
 using Windows.ApplicationModel.Core;
+using UnityEngine.WSA;
 #endif
 
 using UnityEngine;
 using YARG.Menu.Persistent;
 using System.IO;
 using System.Threading.Tasks;
-using UnityEngine.WSA;
 
 namespace YARG.Helpers
 {
