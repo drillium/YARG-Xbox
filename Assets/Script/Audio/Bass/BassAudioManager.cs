@@ -104,8 +104,14 @@ namespace YARG.Audio.BASS
             opusLibDirectory = "bassopus";
 #endif
 
+#if UNITY_IOS
+            opusLibDirectory = "__Internal";
+#endif
+
+#if !UNITY_IPHONE
             _opusHandle = Bass.PluginLoad(opusLibDirectory);
             if (_opusHandle == 0) YargLogger.LogFormatError("Failed to load .opus plugin: {0}!", Bass.LastError);
+#endif
 
             Bass.Configure(Configuration.IncludeDefaultDevice, true);
 
@@ -122,13 +128,13 @@ namespace YARG.Audio.BASS
             // Documentation recommends setting the device buffer to at least 2x the device period
             // https://www.un4seen.com/doc/#bass/BASS_CONFIG_DEV_BUFFER.html
             Bass.DeviceBufferLength = 2 * devPeriod;
-
+#if !UNITY_IOS
             // Affects Windows only. Forces device names to be in UTF-8 on Windows rather than ANSI.
             Bass.UnicodeDeviceInformation = true;
             Bass.FloatingPointDSP = true;
             Bass.VistaTruePlayPosition = false;
             Bass.UpdateThreads = GlobalAudioHandler.MAX_THREADS;
-
+#endif
             // Undocumented BASS_CONFIG_MP3_OLDGAPS config.
             Bass.Configure((Configuration) 68, 1);
 
@@ -391,10 +397,6 @@ namespace YARG.Audio.BASS
 #elif UNITY_ARCH_X86_64
         pluginDirectory = Path.Combine(pluginDirectory, "Android/x86_64");
 #endif
-#endif
-
-#if UNITY_IOS && !UNITY_EDITOR
-    pluginDirectory = Path.Combine(pluginDirectory, "iOS/armv7")
 #endif
 
             // UWP weirdness

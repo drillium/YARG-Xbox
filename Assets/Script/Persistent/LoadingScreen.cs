@@ -28,6 +28,7 @@ namespace YARG
             using var context = new LoadingContext();
 
             // Load language
+            YargLogger.LogInfo("Load lang");
             try
             {
                 await LocalizationManager.LoadLanguage(context);
@@ -37,6 +38,7 @@ namespace YARG
                 YargLogger.LogException(e);
             }
 
+            YargLogger.LogInfo("Check for bad path");
             // Check for bad paths
             if (PathHelper.PathError)
             {
@@ -46,6 +48,7 @@ namespace YARG
                 Quit();
             }
 
+            YargLogger.LogInfo("Load sources");
             // Load song sources and icons
             try
             {
@@ -56,19 +59,22 @@ namespace YARG
                 YargLogger.LogException(ex);
             }
 
+            YargLogger.LogInfo("Settings thingy");
             // Auto connect profiles, using the same order that they were previously connected.
-            if (SettingsManager.Settings.ReconnectProfiles.Value)
+            /*if (SettingsManager.Settings.ReconnectProfiles.Value)
             {
                 PlayerContainer.AutoConnectProfiles();
             }
             else
             {
                 PlayerContainer.ClearProfileOrder();
-            }
+            }*/
 
+            YargLogger.LogInfo("Refresh");
             // Fast scan (cache read) on startup
             await SongContainer.RunRefresh(true, context);
 
+            YargLogger.LogInfo("Go");
             GlobalVariables.Instance.LoadScene(SceneIndex.Menu);
         }
 

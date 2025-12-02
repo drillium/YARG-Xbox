@@ -373,6 +373,7 @@ namespace YARG.Settings
             #endregion
 
             #region Lighting Peripherals
+#if UNITY_STANDALONE // I plan to support YALCY over network eventually. Today is not that day though
             public ToggleSetting StageKitEnabled  { get; } = new(true, StageKitEnabledCallback);
             public ToggleSetting DMXEnabled       { get; } = new(false, DMXEnabledCallback);
             public ToggleSetting RB3EEnabled      { get; } = new(false, RB3EEnabledCallback);
@@ -432,7 +433,7 @@ namespace YARG.Settings
             public IntSetting DMXUniverseChannel { get; } = new(1, 1, 65535);
 
             public DMXChannelsSetting DMXDimmerValues { get; } = new(new[] { 255, 255, 255, 255, 255, 255, 255, 255 });
-
+#endif
             #endregion
 
             #region Debug and Developer
@@ -541,7 +542,9 @@ namespace YARG.Settings
 
             private static void DMXEnabledCallback(bool value)
             {
+#if UNITY_STANDALONE
                 SacnHardware.Instance.HandleEnabledChanged(value);
+#endif
             }
 
             private static void VSyncCallback(bool value)

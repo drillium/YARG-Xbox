@@ -181,6 +181,7 @@ namespace YARG.Settings
                 new ButtonRowMetadata(nameof(Settings.OpenPersistentDataPath)),
                 new ButtonRowMetadata(nameof(Settings.OpenExecutablePath)),
             },
+#if UNITY_STANDALONE // As mentioned in SettingsManager.Settings.cs, I plan on supporting YALCY eventually
             new MetadataTab("LightingPeripherals", icon: "Lighting", new DMXInformationPanelBuilder())
             {
                 new HeaderMetadata("LightingGeneral"),
@@ -214,6 +215,7 @@ namespace YARG.Settings
                 nameof(Settings.RB3EBroadcastIP),
 
             },
+#endif
             new MetadataTab("Debug", icon: "Debug")
             {
                 nameof(Settings.InputDeviceLogging),
