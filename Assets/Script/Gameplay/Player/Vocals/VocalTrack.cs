@@ -9,6 +9,7 @@ using YARG.Core.Chart;
 using YARG.Core.Logging;
 using YARG.Gameplay.HUD;
 using YARG.Gameplay.Visuals;
+using YARG.Helpers.Extensions;
 using YARG.Menu.Persistent;
 using YARG.Player;
 using YARG.Settings;
@@ -108,6 +109,16 @@ namespace YARG.Gameplay.Player
         /// </summary>
         private const float STANDARD_SCROLL_SPEED = 5f;
 
+        /// <summary>
+        /// The minimum allowed aspect ratio for the vocal track
+        /// </summary>
+        private const float MIN_ASPECT_RATIO = 8.0f;
+
+        /// <summary>
+        /// The maximum allowed aspect ratio for the vocal track
+        /// </summary>
+        private const float MAX_ASPECT_RATIO = 13.0f;
+
         [SerializeField]
         private VocalsPlayer _vocalPlayerPrefab;
         [SerializeField]
@@ -194,21 +205,25 @@ namespace YARG.Gameplay.Player
                 "Note pools must be of length three (one for each harmony part).");
         }
 
-        public void InitializeRenderTexture(float vocalImageAspectRatio, RenderTexture renderTexture)
+        public void InitializeRenderTexture(RectTransform vocalsImage, RenderTexture renderTexture)
         {
-            // Set the vocal track render texture to a constant aspect ratio
-            // to make it easier to work with and size.
-            // int height = (int) (Screen.width / vocalImageAspectRatio);
-            float height =  Screen.width / vocalImageAspectRatio / Screen.height;
-            var cameraRect = new Rect(0.0f, 1.0f - height, 1.0f, height);
+            var vocalsSize = vocalsImage.ToScreenSpace();
+            var imageAspectRatio = vocalsSize.width / vocalsSize.height;
+            var clampedAspectRatio = Math.Clamp(imageAspectRatio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
 
-            // Adjust camera rect so vocal track clears stat bar
-            var statsRect = StatsManager.Instance.GetComponent<RectTransform>();
-            var statsHeightNormalized = statsRect.rect.height / Screen.height;
-            cameraRect.y -= statsHeightNormalized;
-            _trackCamera.rect = cameraRect;
+            float heightPixels = vocalsSize.height;
+            float widthPixels = heightPixels * clampedAspectRatio;
 
-            // Apply the render texture
+            // Convert to normalized coordinates
+            float heightNormalized = heightPixels / Screen.height;
+            float widthNormalized = widthPixels / Screen.width;
+
+            // Center horizontally and position below stats overlay
+            float xPos = (1.0f - widthNormalized) / 2.0f;
+            var statsHeightNormalized = StatsManager.Instance.GetComponent<RectTransform>().ToScreenSpace().height / Screen.height;
+            float yPos = 1.0f - heightNormalized - statsHeightNormalized;
+
+            _trackCamera.rect = new Rect(xPos, yPos, widthNormalized, heightNormalized);
             _trackCamera.targetTexture = renderTexture;
         }
 
