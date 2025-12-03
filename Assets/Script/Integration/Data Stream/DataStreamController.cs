@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using YARG.Core.Chart;
 using YARG.Core.Logging;
+using YARG.Settings;
 
 namespace YARG.Integration
 {
@@ -119,7 +120,7 @@ namespace YARG.Integration
         public static Performer          MLCSingalong;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
-        public static string MLCudpIP = "255.255.255.255"; // "this" network's broadcast address
+        public static string MLCudpIP = SettingsManager.Settings.DataStreamIP.Value; // "this" network's broadcast address
 
         public static LightingEvent CurrentLightingCue
         {
@@ -200,6 +201,7 @@ namespace YARG.Integration
 
         public void HandleEnabledChanged(bool isEnabled)
         {
+            YargLogger.LogInfo("Changed");
             if (isEnabled)
             {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -208,6 +210,8 @@ namespace YARG.Integration
 			MLCPlatform = PlatformByte.Mac;
 #elif UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX
 			MLCPlatform = PlatformByte.Linux;
+#else
+            MLCPlatform = PlatformByte.Windows;
 #endif
                 Initializer(SceneManager.GetActiveScene());
                 _sendClient = new();
@@ -216,7 +220,7 @@ namespace YARG.Integration
                 _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
                 _timer.Elapsed += (sender, e) => Sender(_message);
                 _timer.Start();
-
+                YargLogger.LogInfo("GO");
             }
             else
             {
