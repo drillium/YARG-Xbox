@@ -282,14 +282,12 @@ namespace YARG.Gameplay.Visuals
 
         private void ResetHighwayAlphaTexture()
         {
-                        _renderCamera = GetComponent<Camera>();
-
             if (_highwaysOutput != null)
             {
                 if (UnityEngine.XR.XRSettings.enabled)
                     _highwaysOutput.enabled = false;
-                _renderCamera.targetTexture = GetHighwayOutputTexture();
             }
+
             if (_highwaysAlphaTexture != null)
             {
                 _highwaysAlphaTexture.Release();
