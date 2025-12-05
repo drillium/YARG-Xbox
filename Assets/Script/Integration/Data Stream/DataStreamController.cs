@@ -120,7 +120,6 @@ namespace YARG.Integration
         public static Performer          MLCSingalong;
 
         public static ushort MLCudpPort = 36107; //hardcoded for now.
-        public static string MLCudpIP = SettingsManager.Settings.DataStreamIP.Value; // "this" network's broadcast address
 
         public static LightingEvent CurrentLightingCue
         {
@@ -201,7 +200,6 @@ namespace YARG.Integration
 
         public void HandleEnabledChanged(bool isEnabled)
         {
-            YargLogger.LogInfo("Changed");
             if (isEnabled)
             {
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
@@ -215,12 +213,11 @@ namespace YARG.Integration
 #endif
                 Initializer(SceneManager.GetActiveScene());
                 _sendClient = new();
-                _sendClient.Connect(new IPEndPoint(IPAddress.Parse(MLCudpIP), MLCudpPort));
+                _sendClient.Connect(new IPEndPoint(IPAddress.Parse(SettingsManager.Settings.DataStreamIP.Value), MLCudpPort));
                 // start the sending timer
                 _timer = new Timer(TIME_BETWEEN_CALLS * 1000);
                 _timer.Elapsed += (sender, e) => Sender(_message);
                 _timer.Start();
-                YargLogger.LogInfo("GO");
             }
             else
             {

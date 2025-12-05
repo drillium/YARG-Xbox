@@ -5986,7 +5986,7 @@ Transform:
   m_GameObject: {fileID: 1778719367}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -4}
+  m_LocalPosition: {x: 39.89298, y: 68.44394, z: -211.91096}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6035,7 +6035,6 @@ GameObject:
   - component: {fileID: 1848520041}
   - component: {fileID: 1848520043}
   - component: {fileID: 1848520042}
-  - component: {fileID: 1848520044}
   m_Layer: 0
   m_Name: Drumstick_Circle.007 (1)
   m_TagString: Untagged
@@ -6114,18 +6113,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1848520040}
   m_Mesh: {fileID: -5004745633848400613, guid: a192ef3094a48d947a1bada5b2fa4713, type: 3}
---- !u!114 &1848520044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1848520040}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d3a016f13c0a7142b46ea6b95aabb8b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Drumstick
 --- !u!1 &1884127799
 GameObject:
   m_ObjectHideFlags: 0
@@ -7483,7 +7470,6 @@ GameObject:
   - component: {fileID: 8211806580979040662}
   - component: {fileID: 8814062865760178755}
   - component: {fileID: 3734904195410404593}
-  - component: {fileID: 8814062865760178756}
   m_Layer: 0
   m_Name: Drumstick_Circle.007
   m_TagString: Untagged
@@ -7644,18 +7630,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6037768337184734232}
   m_Mesh: {fileID: -5004745633848400613, guid: a192ef3094a48d947a1bada5b2fa4713, type: 3}
---- !u!114 &8814062865760178756
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6037768337184734232}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d3a016f13c0a7142b46ea6b95aabb8b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::YARG.Drumstick
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
