@@ -1,5 +1,7 @@
 ﻿using System;
+#if UNITY_STANDALONE
 using SFB;
+#endif
 using YARG.Core.Logging;
 
 using System.Diagnostics;
@@ -18,6 +20,8 @@ using UnityEngine;
 using YARG.Menu.Persistent;
 using System.IO;
 using System.Threading.Tasks;
+using SimpleFileBrowser;
+using System.Collections;
 
 namespace YARG.Helpers
 {
@@ -45,7 +49,7 @@ namespace YARG.Helpers
                     YargLogger.LogException(ex, $"Error when handling folder {path.Path}!");
                 }
             });
-#else
+#elif UNITY_STANDALONE && false
             StandaloneFileBrowser.OpenFolderPanelAsync("Choose Folder", startingDir, false, (files) =>
             {
                 if (files is not { Length: > 0 })
@@ -61,11 +65,17 @@ namespace YARG.Helpers
                     YargLogger.LogException(ex, $"Error when handling folder {path}!");
                 }
             });
+#else
+            FileBrowser.ShowLoadDialog((paths) =>
+            {
+                callback(paths[0]);
+            }, () => { }, FileBrowser.PickMode.Folders, initialPath: startingDir, title: "Choose Folder");
 #endif
         }
 
         public static void OpenChooseFile(string startingDir, string extension, Action<string> callback)
         {
+#if UNITY_STANDALONE
             StandaloneFileBrowser.OpenFilePanelAsync("Choose File", startingDir, extension, false, (files) =>
             {
                 if (files is not { Length: > 0 })
@@ -81,11 +91,13 @@ namespace YARG.Helpers
                     YargLogger.LogException(ex, $"Error when handling file {path}!");
                 }
             });
+#endif
         }
 
         public static void OpenSaveFile(string startingDir, string defaultName, string extension,
             Action<string> callback)
         {
+#if UNITY_STANDALONE
             StandaloneFileBrowser.SaveFilePanelAsync("Save File", startingDir, defaultName, extension, (path) =>
             {
                 if (string.IsNullOrEmpty(path))
@@ -100,6 +112,7 @@ namespace YARG.Helpers
                     YargLogger.LogException(ex, $"Error when saving file {path}!");
                 }
             });
+#endif
         }
 
         public static void OpenFolder(string folderPath)

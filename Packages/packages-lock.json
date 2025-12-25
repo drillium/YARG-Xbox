@@ -150,7 +150,7 @@
       "dependencies": {
         "com.unity.xr.interaction.toolkit": "3.2.2",
         "com.unity.xr.oculus": "4.5.2",
-        "com.unity.xr.openxr": "1.16.0"
+        "com.unity.xr.openxr": "1.16.1"
       }
     },
     "com.unity.ide.rider": {
@@ -401,7 +401,7 @@
     },
     "com.unity.xr.core-utils": {
       "version": "2.5.3",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.modules.xr": "1.0.0"
@@ -426,7 +426,7 @@
     },
     "com.unity.xr.legacyinputhelpers": {
       "version": "2.1.12",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.modules.vr": "1.0.0",
@@ -436,13 +436,22 @@
     },
     "com.unity.xr.management": {
       "version": "4.5.3",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.unity.modules.xr": "1.0.0",
         "com.unity.xr.core-utils": "2.2.1",
         "com.unity.modules.subsystems": "1.0.0",
         "com.unity.xr.legacyinputhelpers": "2.1.11"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.xr.mock-hmd": {
+      "version": "1.5.0-exp.2",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.xr.management": "4.5.3"
       },
       "url": "https://packages.unity.com"
     },
@@ -456,13 +465,14 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.xr.openxr": {
-      "version": "1.16.0",
-      "depth": 1,
+      "version": "1.16.1",
+      "depth": 0,
       "source": "registry",
       "dependencies": {
         "com.unity.inputsystem": "1.6.3",
         "com.unity.xr.core-utils": "2.3.0",
         "com.unity.xr.management": "4.4.0",
+        "com.unity.modules.androidjni": "1.0.0",
         "com.unity.xr.legacyinputhelpers": "2.1.2"
       },
       "url": "https://packages.unity.com"

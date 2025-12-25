@@ -72,7 +72,9 @@ namespace YARG.Input
             InputSystem.onDeviceChange += OnDeviceChange;
 
             // Notify of all current devices
+#if !UNITY_WEBGL
             ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
+#endif
             foreach (var device in InputSystem.devices)
             {
                 if (!device.enabled)

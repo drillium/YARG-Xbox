@@ -48,6 +48,17 @@ namespace Editor
             exportButton.Add(new Label("Export Background"));
             myInspector.Add(exportButton);
 
+
+            var exportButtonUWP = new Button(() =>
+            {
+                if (target is BundleBackgroundManager manager)
+                {
+                    manager.ExportBackgroundUWP();
+                }
+            });
+            exportButtonUWP.Add(new Label("Export Background for UWP"));
+            myInspector.Add(exportButtonUWP);
+
             return myInspector;
         }
     }

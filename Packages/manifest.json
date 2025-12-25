@@ -52,6 +52,8 @@
     "com.unity.toolchain.macos-x86_64-linux-x86_64": "2.0.6",
     "com.unity.toolchain.win-x86_64-linux-x86_64": "2.0.6",
     "com.unity.ugui": "1.0.0",
+    "com.unity.xr.mock-hmd": "1.5.0-exp.2",
+    "com.unity.xr.openxr": "1.16.1",
     "fidelityfx.fsr": "https://github.com/ndepoel/FSR3Unity.git?path=/Packages/fidelityfx.fsr",
     "io.github.gkngkc.unity-standalone-file-browser": "https://github.com/wyrdough/UnityStandaloneFileBrowser.git?path=Packages/StandaloneFileBrowser#upm",
     "com.unity.modules.accessibility": "1.0.0",

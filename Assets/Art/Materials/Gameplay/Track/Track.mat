@@ -156,6 +156,7 @@ Material:
     - _SrcBlend: 1
     - _Starpower_Emission_Amount: 1
     - _Starpower_Offset: -0.2
+    - _Starpower_Start_Time: 0
     - _Starpower_State: 0
     - _Surface: 0
     - _Waviness: 0

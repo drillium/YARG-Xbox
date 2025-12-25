@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -50,10 +50,11 @@ namespace YARG.Menu.Calibrator
         private double _time;
 #nullable disable
 
-        private bool wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
+        private bool wasWhammyEnabled;
 
         private void Start()
         {
+            wasWhammyEnabled = SettingsManager.Settings.UseWhammyFx.Value;
             UpdateForState();
         }
 
