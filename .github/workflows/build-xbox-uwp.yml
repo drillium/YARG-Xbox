@@ -72,19 +72,89 @@ jobs:
           nugetforunity restore
 
       ###########################
+      #     Install Unity       #
+      ###########################
+      - name: "[Pre-install] Install Unity Hub"
+        run: |
+          choco install unity-hub -y --no-progress
+        shell: pwsh
+
+      - name: "[Pre-install] Install Unity 2021.3.36f1 with UWP"
+        run: |
+          $hubExe = "C:\Program Files\Unity Hub\Unity Hub.exe"
+          # Install the editor with UWP build support
+          & $hubExe -- --headless install --version 2021.3.36f1 --changeset 7a0645017be0 --module universal-windows-platform 2>&1
+          # Wait a moment for installation to complete
+          Start-Sleep -Seconds 10
+          # List installed editors to verify
+          & $hubExe -- --headless editors --installed 2>&1
+        shell: pwsh
+
+      ###########################
+      #    Activate License     #
+      ###########################
+      - name: "[Pre-install] Activate Unity License"
+        uses: RageAgainstThePixel/activate-unity-license@v2
+        with:
+          license: 'Personal'
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
+
+      ###########################
       #    Unity UWP Build      #
       ###########################
+      - name: "[Build] Find Unity Editor"
+        id: find-unity
+        run: |
+          # Find the Unity editor executable
+          $editorDir = Get-ChildItem -Path "C:\Program Files\Unity\Hub\Editor" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $editorDir) {
+            # Try alternate path
+            $editorDir = Get-ChildItem -Path "C:\Program Files\Unity" -Directory -Filter "2021*" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $editorDir) {
+            Write-Error "Unity editor not found!"
+            exit 1
+          }
+          $unityExe = Join-Path $editorDir.FullName "Editor\Unity.exe"
+          if (-not (Test-Path $unityExe)) {
+            Write-Error "Unity.exe not found at: $unityExe"
+            exit 1
+          }
+          Write-Host "Found Unity at: $unityExe"
+          echo "unity_path=$unityExe" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
       - name: "[Build] Build UWP Player"
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          buildName: YARG
-          unityVersion: 2021.3.36f1
-          targetPlatform: WSAPlayer
-          buildMethod: UnityBuilderAction.Builder.BuildProject
+        run: |
+          $unityExe = "${{ steps.find-unity.outputs.unity_path }}"
+          Write-Host "Building with Unity: $unityExe"
+          Write-Host "Project path: $env:GITHUB_WORKSPACE"
+
+          # Run Unity in batch mode to build UWP
+          $process = Start-Process -FilePath $unityExe -ArgumentList @(
+            "-batchmode",
+            "-nographics",
+            "-quit",
+            "-projectPath", "$env:GITHUB_WORKSPACE",
+            "-buildTarget", "WSAPlayer",
+            "-executeMethod", "Editor.Build.BuildUWP.Build",
+            "-logFile", "$env:GITHUB_WORKSPACE\unity-build.log"
+          ) -Wait -PassThru -NoNewWindow
+
+          # Always show the build log
+          if (Test-Path "$env:GITHUB_WORKSPACE\unity-build.log") {
+            Write-Host "=== Unity Build Log (last 200 lines) ==="
+            Get-Content "$env:GITHUB_WORKSPACE\unity-build.log" -Tail 200
+          }
+
+          if ($process.ExitCode -ne 0) {
+            Write-Error "Unity build failed with exit code: $($process.ExitCode)"
+            exit 1
+          }
+          Write-Host "Unity build completed successfully!"
+        shell: pwsh
+        timeout-minutes: 120
 
       ###########################
       #   Build Visual Studio   #
@@ -92,12 +162,16 @@ jobs:
       - name: "[Build] Setup MSBuild"
         uses: microsoft/setup-msbuild@v2
 
+      - name: "[Build] Install NuGet CLI"
+        run: choco install nuget.commandline -y --no-progress
+        shell: pwsh
+
       - name: "[Build] Find and build UWP solution"
         run: |
-          # Find the generated .sln file
           $slnPath = Get-ChildItem -Path "build\WSAPlayer" -Filter "*.sln" -Recurse | Select-Object -First 1
           if (-not $slnPath) {
             Write-Error "No .sln file found in build\WSAPlayer"
+            Get-ChildItem -Path "build" -Recurse | Select-Object FullName
             exit 1
           }
           Write-Host "Found solution: $($slnPath.FullName)"
@@ -120,10 +194,19 @@ jobs:
       ###########################
       #    Fallback: Zip raw    #
       ###########################
+      - name: "[Build] Upload Unity build log"
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-build-log
+          path: unity-build.log
+
       - name: "[Build] Fallback - Zip UWP build output"
         if: failure()
         run: |
-          Compress-Archive -Path "build\WSAPlayer\*" -DestinationPath "YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild.zip"
+          if (Test-Path "build\WSAPlayer") {
+            Compress-Archive -Path "build\WSAPlayer\*" -DestinationPath "YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild.zip"
+          }
         shell: pwsh
 
       - name: "[Build] Fallback - Upload raw build"
@@ -132,6 +215,7 @@ jobs:
         with:
           name: YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild
           path: YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild.zip
+          if-no-files-found: ignore
 
       ###########################
       #     Upload Artifact     #
@@ -139,7 +223,7 @@ jobs:
       - name: "[Post-build] Find .appx file"
         id: find-appx
         run: |
-          $appx = Get-ChildItem -Path "AppxPackages" -Filter "*.appx" -Recurse | Select-Object -First 1
+          $appx = Get-ChildItem -Path "AppxPackages" -Filter "*.appx" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
           if ($appx) {
             $newName = "YARG_v${{ inputs.version }}-Xbox.appx"
             Copy-Item $appx.FullName -Destination $newName
@@ -165,3 +249,15 @@ jobs:
         with:
           name: YARG_v${{ inputs.version }}-Xbox-AppxPackages
           path: AppxPackages/
+          if-no-files-found: ignore
+
+      ###########################
+      #    Return License       #
+      ###########################
+      - name: "[Post-build] Return Unity License"
+        if: always()
+        uses: RageAgainstThePixel/activate-unity-license@v2
+        with:
+          license: 'Personal'
+          username: ${{ secrets.UNITY_EMAIL }}
+          password: ${{ secrets.UNITY_PASSWORD }}
