@@ -54,7 +54,17 @@ namespace YARG.Logging
 
             RegisterFormatters();
 
-            UnityInternalLogWrapper.OverwriteUnityInternals();
+            try
+            {
+                UnityInternalLogWrapper.OverwriteUnityInternals();
+            }
+            catch (Exception ex)
+            {
+                // On UWP/Xbox with IL2CPP, reflection into Unity internals may be
+                // stripped or restricted. Log the failure and continue without the
+                // custom log wrapper -- the default Unity logger will still work.
+                Debug.LogWarning($"Failed to override Unity internals for logging (may be expected on UWP): {ex.Message}");
+            }
 
             Application.logMessageReceivedThreaded += OnLogMessageReceived;
 

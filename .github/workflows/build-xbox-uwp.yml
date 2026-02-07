@@ -1,0 +1,167 @@
+name: Build - Xbox UWP (.appx)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 0.0.4)"
+        required: true
+        default: "0.0.4"
+        type: string
+
+jobs:
+  uwpBuilder:
+    name: Xbox UWP Build v${{ inputs.version }}
+    runs-on: windows-2022
+
+    steps:
+      ###########################
+      #         Checkout        #
+      ###########################
+      - name: "[Pre-install] Pull project"
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          submodules: recursive
+
+      ###########################
+      #          Cache          #
+      ###########################
+      - name: "[Pre-install] Restore 'library' cache"
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: YARG-Library-windows-WSAPlayer
+          restore-keys: |
+            YARG-Library-windows-
+            YARG-Library-
+
+      ###########################
+      #     Install Blender     #
+      ###########################
+      - name: "[Pre-install] Cache Blender"
+        id: blender-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\BlenderInstall
+          key: blender-3.4.1-windows
+
+      - name: "[Pre-install] Download Blender (3.4.1)"
+        if: steps.blender-cache.outputs.cache-hit != 'true'
+        run: |
+          New-Item -ItemType Directory -Force -Path C:\BlenderInstall
+          Invoke-WebRequest -Uri "https://download.blender.org/release/Blender3.4/blender-3.4.1-windows-x64.msi" -OutFile "C:\BlenderInstall\blender.msi"
+        shell: pwsh
+
+      - name: "[Pre-install] Install Blender (3.4.1)"
+        run: |
+          Start-Process msiexec.exe -ArgumentList '/i', 'C:\BlenderInstall\blender.msi', '/quiet', '/norestart', 'INSTALLDIR=C:\Blender' -Wait -NoNewWindow
+        shell: pwsh
+
+      ###########################
+      #    Restore  Packages    #
+      ###########################
+      - name: "[Pre-install] Install .NET SDK"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "6.0.x"
+
+      - name: "[Pre-install] Restore NuGet Packages"
+        run: |
+          dotnet tool install --global NuGetForUnity.Cli
+          nugetforunity restore
+
+      ###########################
+      #    Unity UWP Build      #
+      ###########################
+      - name: "[Build] Build UWP Player"
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          buildName: YARG
+          unityVersion: 2021.3.36f1
+          targetPlatform: WSAPlayer
+          buildMethod: UnityBuilderAction.Builder.BuildProject
+
+      ###########################
+      #   Build Visual Studio   #
+      ###########################
+      - name: "[Build] Setup MSBuild"
+        uses: microsoft/setup-msbuild@v2
+
+      - name: "[Build] Find and build UWP solution"
+        run: |
+          # Find the generated .sln file
+          $slnPath = Get-ChildItem -Path "build\WSAPlayer" -Filter "*.sln" -Recurse | Select-Object -First 1
+          if (-not $slnPath) {
+            Write-Error "No .sln file found in build\WSAPlayer"
+            exit 1
+          }
+          Write-Host "Found solution: $($slnPath.FullName)"
+
+          # Restore NuGet packages for the VS solution
+          nuget restore $slnPath.FullName
+
+          # Build the APPX package
+          msbuild $slnPath.FullName `
+            /p:Configuration=Master `
+            /p:Platform=x64 `
+            /p:AppxBundle=Never `
+            /p:AppxPackageSigningEnabled=true `
+            /p:PackageCertificateKeyFile="$($slnPath.DirectoryName)\YARG\WSATestCertificate.pfx" `
+            /p:PackageCertificatePassword="" `
+            /p:UapAppxPackageBuildMode=SideloadOnly `
+            /p:AppxPackageDir="$env:GITHUB_WORKSPACE\AppxPackages\"
+        shell: pwsh
+
+      ###########################
+      #    Fallback: Zip raw    #
+      ###########################
+      - name: "[Build] Fallback - Zip UWP build output"
+        if: failure()
+        run: |
+          Compress-Archive -Path "build\WSAPlayer\*" -DestinationPath "YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild.zip"
+        shell: pwsh
+
+      - name: "[Build] Fallback - Upload raw build"
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild
+          path: YARG_v${{ inputs.version }}-Xbox-UWP-RawBuild.zip
+
+      ###########################
+      #     Upload Artifact     #
+      ###########################
+      - name: "[Post-build] Find .appx file"
+        id: find-appx
+        run: |
+          $appx = Get-ChildItem -Path "AppxPackages" -Filter "*.appx" -Recurse | Select-Object -First 1
+          if ($appx) {
+            $newName = "YARG_v${{ inputs.version }}-Xbox.appx"
+            Copy-Item $appx.FullName -Destination $newName
+            echo "appx_path=$newName" >> $env:GITHUB_OUTPUT
+            echo "found=true" >> $env:GITHUB_OUTPUT
+            Write-Host "Found APPX: $($appx.FullName)"
+          } else {
+            echo "found=false" >> $env:GITHUB_OUTPUT
+            Write-Host "No .appx found, check raw build output"
+          }
+        shell: pwsh
+
+      - name: "[Post-build] Upload .appx"
+        if: steps.find-appx.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG_v${{ inputs.version }}-Xbox.appx
+          path: ${{ steps.find-appx.outputs.appx_path }}
+
+      - name: "[Post-build] Upload full AppxPackages folder"
+        if: steps.find-appx.outputs.found != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: YARG_v${{ inputs.version }}-Xbox-AppxPackages
+          path: AppxPackages/

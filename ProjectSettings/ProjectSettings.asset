@@ -912,7 +912,7 @@ PlayerSettings:
   XboxOneSockets: {}
   XboxOneSplashScreen: {fileID: 0}
   XboxOneAllowedProductIds: []
-  XboxOnePersistentLocalStorageSize: 0
+  XboxOnePersistentLocalStorageSize: 256
   XboxOneXTitleMemory: 8
   XboxOneOverrideIdentityName: 
   XboxOneOverrideIdentityPublisher: 

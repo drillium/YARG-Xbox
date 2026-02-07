@@ -91,10 +91,6 @@ namespace YARG.Helpers
             PersistentDataPath = SanitizePath(Path.Combine(Application.persistentDataPath, "release"));
 #endif
 
-#if UNITY_WSA
-        
-#endif
-
             // Persistent Data Path override passed in from CLI
             if (!string.IsNullOrWhiteSpace(CommandLineArgs.PersistentDataPath))
             {
@@ -105,9 +101,11 @@ namespace YARG.Helpers
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
-#if UNITY_WSA
-            StreamingAssetsPath = Path.Combine(PersistentDataPath, "StreamingAssets");
-            StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
+#if UNITY_WSA && !UNITY_EDITOR
+            // On UWP/Xbox, StreamingAssets in the install directory may not be directly
+            // accessible. Use a path under PersistentDataPath instead, where files can
+            // be copied to and read from at runtime.
+            StreamingAssetsPath = SanitizePath(Path.Combine(PersistentDataPath, "StreamingAssets"));
 #else
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
 #endif
@@ -116,6 +114,12 @@ namespace YARG.Helpers
             BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
 
             // Get the launcher paths
+#if UNITY_WSA && !UNITY_EDITOR
+            // On UWP/Xbox there is no YARC launcher, so skip launcher path resolution.
+            // Songs must be managed via the device portal or in-game download.
+            LauncherPath = null;
+            SetlistPath = null;
+#else
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
             // Thanks Apple
             var localAppdata = Path.Combine(Environment.GetEnvironmentVariable("HOME"),
@@ -128,6 +132,7 @@ namespace YARG.Helpers
             // Get official setlist path
             // (this is replaced by the launch argument if it is set)
             SetlistPath = FindSetlistPath();
+#endif
         }
 
         private static string FindSetlistPath()
