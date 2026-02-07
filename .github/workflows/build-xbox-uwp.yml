@@ -129,13 +129,12 @@ jobs:
             "-createManualActivationFile"
           ) -Wait -PassThru -NoNewWindow
           Write-Host "ALF generation exit code: $($process.ExitCode)"
-          $alfFiles = Get-ChildItem -Path "." -Filter "*.alf" -ErrorAction SilentlyContinue
+          $alfFiles = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.alf" -Recurse -ErrorAction SilentlyContinue
           if (-not $alfFiles) {
-            $alfFiles = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.alf" -ErrorAction SilentlyContinue
+            $alfFiles = Get-ChildItem -Path "." -Filter "*.alf" -ErrorAction SilentlyContinue
           }
           if ($alfFiles) {
             Write-Host "ALF file found: $($alfFiles[0].FullName)"
-            Copy-Item $alfFiles[0].FullName -Destination "$env:GITHUB_WORKSPACE\Unity_v2021.3.36f1.alf"
           } else {
             Write-Error "No .alf file generated!"
             if (Test-Path "$env:GITHUB_WORKSPACE\alf-generation.log") {
@@ -153,10 +152,11 @@ jobs:
           npm install -g unity-license-activate
           $alfFile = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.alf" | Select-Object -First 1
           Write-Host "Using ALF file: $($alfFile.FullName)"
-          unity-license-activate $env:UNITY_EMAIL $env:UNITY_PASSWORD $alfFile.FullName
-          $ulfFiles = Get-ChildItem -Path "." -Filter "*.ulf" -ErrorAction SilentlyContinue
+          unity-license-activate "$env:UNITY_EMAIL" "$env:UNITY_PASSWORD" "$($alfFile.FullName)"
+          # Search everywhere for the generated .ulf
+          $ulfFiles = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.ulf" -Recurse -ErrorAction SilentlyContinue
           if (-not $ulfFiles) {
-            $ulfFiles = Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.ulf" -ErrorAction SilentlyContinue
+            $ulfFiles = Get-ChildItem -Path "." -Filter "*.ulf" -ErrorAction SilentlyContinue
           }
           if ($ulfFiles) {
             Write-Host "ULF license file generated: $($ulfFiles[0].FullName)"
