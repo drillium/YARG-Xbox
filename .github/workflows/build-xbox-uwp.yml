@@ -114,86 +114,32 @@ jobs:
       ###########################
       #    Activate License     #
       ###########################
-      - name: "[Pre-install] Write Unity License Files"
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        run: |
-          # Write the entitlement license to multiple locations Unity might check
-
-          # Location 1: New entitlement path (user-level)
-          $userLicDir = "$env:LOCALAPPDATA\Unity\licenses"
-          New-Item -ItemType Directory -Force -Path $userLicDir
-          Set-Content -Path "$userLicDir\UnityEntitlementLicense.xml" -Value $env:UNITY_LICENSE -Encoding UTF8
-          Write-Host "Wrote license to: $userLicDir\UnityEntitlementLicense.xml"
-
-          # Location 2: Old ULF path (system-level)
-          $sysDir = "C:\ProgramData\Unity"
-          New-Item -ItemType Directory -Force -Path $sysDir
-          Set-Content -Path "$sysDir\Unity_lic.ulf" -Value $env:UNITY_LICENSE -Encoding UTF8
-          Write-Host "Wrote license to: $sysDir\Unity_lic.ulf"
-
-          # Location 3: CommonApplicationData Unity path
-          $commonDir = [System.Environment]::GetFolderPath('CommonApplicationData')
-          $commonUnity = "$commonDir\Unity"
-          New-Item -ItemType Directory -Force -Path $commonUnity
-          Set-Content -Path "$commonUnity\Unity_lic.ulf" -Value $env:UNITY_LICENSE -Encoding UTF8
-          Write-Host "Wrote license to: $commonUnity\Unity_lic.ulf"
-
-          # Location 4: Per-user AppData Roaming
-          $roamingDir = "$env:APPDATA\Unity\licenses"
-          New-Item -ItemType Directory -Force -Path $roamingDir
-          Set-Content -Path "$roamingDir\UnityEntitlementLicense.xml" -Value $env:UNITY_LICENSE -Encoding UTF8
-          Write-Host "Wrote license to: $roamingDir\UnityEntitlementLicense.xml"
-
-          Write-Host "License files written to all candidate locations."
-        shell: pwsh
-
-      - name: "[Pre-install] Activate via Unity CLI"
+      - name: "[Pre-install] Activate Unity License"
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           $unityExe = "C:\Program Files\Unity\2021.3.36f1\Editor\Unity.exe"
 
-          # Method 1: Try direct Unity CLI activation with credentials
-          Write-Host "=== Method 1: Unity CLI with -username/-password ==="
+          # Clean any stale license files that might confuse Unity
+          Remove-Item -Path "C:\ProgramData\Unity\Unity_lic.ulf" -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "$env:LOCALAPPDATA\Unity\licenses\*" -Force -ErrorAction SilentlyContinue
+
+          # Activate with credentials - login and let Unity create proper activation
+          Write-Host "Activating Unity with credentials..."
           $process = Start-Process -FilePath $unityExe -ArgumentList @(
             "-batchmode", "-nographics", "-quit",
-            "-logFile", "$env:GITHUB_WORKSPACE\activation-method1.log",
+            "-logFile", "$env:GITHUB_WORKSPACE\activation.log",
             "-username", $env:UNITY_EMAIL,
             "-password", $env:UNITY_PASSWORD
           ) -Wait -PassThru -NoNewWindow
-          Write-Host "Method 1 exit code: $($process.ExitCode)"
-          if (Test-Path "$env:GITHUB_WORKSPACE\activation-method1.log") {
-            Get-Content "$env:GITHUB_WORKSPACE\activation-method1.log" -Tail 30
+          Write-Host "Activation exit code: $($process.ExitCode)"
+          if (Test-Path "$env:GITHUB_WORKSPACE\activation.log") {
+            Get-Content "$env:GITHUB_WORKSPACE\activation.log" -Tail 50
           }
 
-          # Check if license is now active
-          $licCheck = Get-ChildItem -Path "C:\ProgramData\Unity" -Filter "*.ulf" -ErrorAction SilentlyContinue
-          if ($licCheck) {
-            Write-Host "License file found after Method 1: $($licCheck.FullName)"
-            exit 0
-          }
-
-          # Method 2: Create manual activation file (.alf) for fallback
-          Write-Host "=== Method 2: Generate .alf for manual activation ==="
-          $process2 = Start-Process -FilePath $unityExe -ArgumentList @(
-            "-batchmode", "-nographics", "-quit",
-            "-logFile", "$env:GITHUB_WORKSPACE\activation-method2.log",
-            "-createManualActivationFile"
-          ) -Wait -PassThru -NoNewWindow
-          Write-Host "Method 2 exit code: $($process2.ExitCode)"
-          if (Test-Path "$env:GITHUB_WORKSPACE\activation-method2.log") {
-            Get-Content "$env:GITHUB_WORKSPACE\activation-method2.log" -Tail 30
-          }
-          $alfFiles = Get-ChildItem -Path "." -Filter "*.alf" -ErrorAction SilentlyContinue
-          if ($alfFiles) {
-            Write-Host "ALF file generated: $($alfFiles.FullName)"
-            Copy-Item $alfFiles.FullName -Destination "$env:GITHUB_WORKSPACE\"
-          }
-
-          # List what's in the license directories
-          Write-Host "=== License directories ==="
+          # List license state
+          Write-Host "=== License directories after activation ==="
           Get-ChildItem -Path "C:\ProgramData\Unity" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
           Get-ChildItem -Path "$env:LOCALAPPDATA\Unity" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
         shell: pwsh
@@ -225,6 +171,9 @@ jobs:
         shell: pwsh
 
       - name: "[Build] Build UWP Player"
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           $unityExe = "${{ steps.find-unity.outputs.unity_path }}"
           Write-Host "Building with Unity: $unityExe"
@@ -234,6 +183,8 @@ jobs:
             "-batchmode",
             "-nographics",
             "-quit",
+            "-username", $env:UNITY_EMAIL,
+            "-password", $env:UNITY_PASSWORD,
             "-projectPath", "$env:GITHUB_WORKSPACE",
             "-buildTarget", "WSAPlayer",
             "-executeMethod", "Editor.Build.BuildUWP.Build",
