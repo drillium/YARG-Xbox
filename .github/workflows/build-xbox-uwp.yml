@@ -74,18 +74,42 @@ jobs:
       ###########################
       #     Install Unity       #
       ###########################
-      - name: "[Pre-install] Install Unity Hub"
+      - name: "[Pre-install] Download Unity Editor installer"
         run: |
-          choco install unity-hub -y --no-progress
+          New-Item -ItemType Directory -Force -Path C:\UnityInstallers
+          $changeset = "7a0645017be0"
+          # Download Unity Editor
+          Write-Host "Downloading Unity 2021.3.36f1 Editor..."
+          Invoke-WebRequest -Uri "https://download.unity3d.com/download_unity/$changeset/Windows64EditorInstaller/UnitySetup64-2021.3.36f1.exe" -OutFile "C:\UnityInstallers\UnitySetup.exe" -UseBasicParsing
+          Write-Host "Downloaded Unity Editor installer."
+          # Download UWP Build Support
+          Write-Host "Downloading UWP Build Support..."
+          Invoke-WebRequest -Uri "https://download.unity3d.com/download_unity/$changeset/TargetSupportInstaller/UnitySetup-Universal-Windows-Platform-Support-for-Editor-2021.3.36f1.exe" -OutFile "C:\UnityInstallers\UnitySetup-UWP.exe" -UseBasicParsing
+          Write-Host "Downloaded UWP Build Support installer."
         shell: pwsh
+        timeout-minutes: 30
 
-      - name: "[Pre-install] Install Unity 2021.3.36f1 with UWP"
+      - name: "[Pre-install] Install Unity Editor"
         run: |
-          $hubExe = "C:\Program Files\Unity Hub\Unity Hub.exe"
-          & $hubExe -- --headless install --version 2021.3.36f1 --changeset 7a0645017be0 --module universal-windows-platform 2>&1
-          Start-Sleep -Seconds 10
-          & $hubExe -- --headless editors --installed 2>&1
+          Write-Host "Installing Unity 2021.3.36f1..."
+          $installDir = "C:\Program Files\Unity\2021.3.36f1"
+          Start-Process -FilePath "C:\UnityInstallers\UnitySetup.exe" -ArgumentList "/S", "/D=$installDir" -Wait -NoNewWindow
+          Write-Host "Unity Editor installed."
+          # Install UWP support
+          Write-Host "Installing UWP Build Support..."
+          Start-Process -FilePath "C:\UnityInstallers\UnitySetup-UWP.exe" -ArgumentList "/S", "/D=$installDir" -Wait -NoNewWindow
+          Write-Host "UWP Build Support installed."
+          # Verify installation
+          $unityExe = "$installDir\Editor\Unity.exe"
+          if (Test-Path $unityExe) {
+            Write-Host "Unity verified at: $unityExe"
+          } else {
+            Write-Error "Unity.exe not found after installation!"
+            Get-ChildItem -Path "C:\Program Files\Unity" -Recurse -Filter "Unity.exe" -ErrorAction SilentlyContinue
+            exit 1
+          }
         shell: pwsh
+        timeout-minutes: 30
 
       ###########################
       #    Activate License     #
@@ -127,10 +151,8 @@ jobs:
       - name: "[Pre-install] Try CLI Activation (fallback)"
         continue-on-error: true
         run: |
-          # Try activating via Unity CLI as a fallback
-          $editorDir = Get-ChildItem -Path "C:\Program Files\Unity\Hub\Editor" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-          if ($editorDir) {
-            $unityExe = Join-Path $editorDir.FullName "Editor\Unity.exe"
+          $unityExe = "C:\Program Files\Unity\2021.3.36f1\Editor\Unity.exe"
+          if (Test-Path $unityExe) {
             Write-Host "Attempting Unity CLI activation with: $unityExe"
             $process = Start-Process -FilePath $unityExe -ArgumentList @(
               "-batchmode", "-nographics", "-quit",
@@ -141,8 +163,9 @@ jobs:
             if (Test-Path "$env:GITHUB_WORKSPACE\activation.log") {
               Get-Content "$env:GITHUB_WORKSPACE\activation.log" -Tail 30
             }
-            # Check if Unity created any .alf files
             Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.alf" -ErrorAction SilentlyContinue
+          } else {
+            Write-Host "Unity not yet installed at expected path, skipping CLI activation"
           }
         shell: pwsh
 
@@ -152,21 +175,23 @@ jobs:
       - name: "[Build] Find Unity Editor"
         id: find-unity
         run: |
-          $editorDir = Get-ChildItem -Path "C:\Program Files\Unity\Hub\Editor" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
-          if (-not $editorDir) {
-            $editorDir = Get-ChildItem -Path "C:\Program Files\Unity" -Directory -Filter "2021*" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          # Check direct install path first
+          $unityExe = "C:\Program Files\Unity\2021.3.36f1\Editor\Unity.exe"
+          if (Test-Path $unityExe) {
+            Write-Host "Found Unity at: $unityExe"
+            echo "unity_path=$unityExe" >> $env:GITHUB_OUTPUT
+            exit 0
           }
-          if (-not $editorDir) {
-            Write-Error "Unity editor not found!"
-            exit 1
+          # Fallback: search for Unity.exe
+          $found = Get-ChildItem -Path "C:\Program Files\Unity" -Recurse -Filter "Unity.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($found) {
+            Write-Host "Found Unity at: $($found.FullName)"
+            echo "unity_path=$($found.FullName)" >> $env:GITHUB_OUTPUT
+            exit 0
           }
-          $unityExe = Join-Path $editorDir.FullName "Editor\Unity.exe"
-          if (-not (Test-Path $unityExe)) {
-            Write-Error "Unity.exe not found at: $unityExe"
-            exit 1
-          }
-          Write-Host "Found Unity at: $unityExe"
-          echo "unity_path=$unityExe" >> $env:GITHUB_OUTPUT
+          Write-Error "Unity editor not found! Listing C:\Program Files\Unity:"
+          Get-ChildItem -Path "C:\Program Files\Unity" -Recurse -Depth 3 -ErrorAction SilentlyContinue | Select-Object FullName
+          exit 1
         shell: pwsh
 
       - name: "[Build] Build UWP Player"
