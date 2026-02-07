@@ -172,6 +172,21 @@ jobs:
           }
         shell: pwsh
 
+      - name: "[Pre-install] Disable Licensing Client (force legacy ULF mode)"
+        run: |
+          # The new Licensing Client checks entitlements and rejects Personal
+          # licenses for batch/headless mode. Renaming it forces Unity to fall
+          # back to legacy .ulf-based licensing which works for CI.
+          $lcPath = "C:\Program Files\Unity\2021.3.36f1\Editor\Data\Resources\Licensing\Client"
+          if (Test-Path "$lcPath\Unity.Licensing.Client.exe") {
+            Rename-Item "$lcPath\Unity.Licensing.Client.exe" "Unity.Licensing.Client.exe.bak"
+            Write-Host "Licensing Client disabled (renamed to .bak)"
+          } else {
+            Write-Host "Licensing Client not found at expected path, listing:"
+            Get-ChildItem -Path "C:\Program Files\Unity\2021.3.36f1\Editor\Data\Resources" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
+          }
+        shell: pwsh
+
       - name: "[Pre-install] Upload activation artifacts"
         if: always()
         uses: actions/upload-artifact@v4
