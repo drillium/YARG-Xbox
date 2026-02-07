@@ -151,7 +151,7 @@ namespace YARG.Input
         }
 #nullable disable
 
-        public async void ResolveDevices()
+        public void ResolveDevices()
         {
             foreach (var device in InputSystem.devices)
             {
@@ -161,7 +161,7 @@ namespace YARG.Input
 
             if (_unresolvedMic is not null)
             {
-                var device = await GlobalAudioHandler.GetInputDevice(_unresolvedMic.Name);
+                var device = GlobalAudioHandler.GetInputDevice(_unresolvedMic.Name);
                 if (device != null)
                 {
                     AddMicrophone(device);

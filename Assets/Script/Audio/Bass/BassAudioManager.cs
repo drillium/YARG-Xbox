@@ -13,7 +13,6 @@ using YARG.Helpers;
 using Windows.Media.Devices;
 using Windows.Devices.Enumeration;
 #endif
-using System.Threading.Tasks;
 
 
 #if UNITY_EDITOR
@@ -206,7 +205,7 @@ namespace YARG.Audio.BASS
             return new BassStemMixer(name, this, speed, mixerVolume, handle, sourceStream, clampStemVolume);
         }
 
-        protected internal override Task<MicDevice?> GetInputDevice(string name)
+        protected internal override MicDevice? GetInputDevice(string name)
         {
             for (int deviceIndex = 0; Bass.RecordGetDeviceInfo(deviceIndex, out var info); deviceIndex++)
             {
@@ -227,14 +226,15 @@ namespace YARG.Audio.BASS
         }
 #nullable disable
 
-        protected internal override async Task<List<(int id, string name)>> GetAllInputDevices()
+        protected internal override List<(int id, string name)> GetAllInputDevices()
         {
             var mics = new List<(int id, string name)>();
 
 #if UNITY_WSA && !UNITY_EDITOR && false
             // Get selector string for audio capture devices
+            // NOTE: async UWP device enumeration disabled; enable & make method async when ready
             var selector = MediaDevice.GetAudioCaptureSelector();
-            var devices = await DeviceInformation.FindAllAsync(selector);
+            var devices = DeviceInformation.FindAllAsync(selector).GetResults();
 
             int index = 0;
             foreach (var device in devices)
@@ -277,11 +277,12 @@ namespace YARG.Audio.BASS
         }
 
 #nullable enable
-        protected internal override async Task<MicDevice?> CreateDevice(int deviceId, string name)
+        protected internal override MicDevice? CreateDevice(int deviceId, string name)
 #nullable disable
         {
 #if UNITY_WSA && !UNITY_EDITOR && false
-            var device = await YARG.Audio.UWP.UWPMicDevice.CreateAsync(name);
+            // NOTE: async UWP mic creation disabled; enable & make method async when ready
+            var device = YARG.Audio.UWP.UWPMicDevice.CreateAsync(name).GetAwaiter().GetResult();
 #else
             var device = BassMicDevice.Create(deviceId, name);
 #endif
