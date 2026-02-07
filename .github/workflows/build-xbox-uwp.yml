@@ -172,18 +172,18 @@ jobs:
           }
         shell: pwsh
 
-      - name: "[Pre-install] Disable Licensing Client (force legacy ULF mode)"
+      - name: "[Pre-install] Block Licensing Client network (force ULF fallback)"
         run: |
-          # The new Licensing Client checks entitlements and rejects Personal
-          # licenses for batch/headless mode. Renaming it forces Unity to fall
-          # back to legacy .ulf-based licensing which works for CI.
-          $lcPath = "C:\Program Files\Unity\2021.3.36f1\Editor\Data\Resources\Licensing\Client"
-          if (Test-Path "$lcPath\Unity.Licensing.Client.exe") {
-            Rename-Item "$lcPath\Unity.Licensing.Client.exe" "Unity.Licensing.Client.exe.bak"
-            Write-Host "Licensing Client disabled (renamed to .bak)"
+          # Block the Licensing Client's outbound network access so it can't
+          # check entitlements online. This forces Unity to fall back to the
+          # legacy .ulf file which works for Personal licenses in batch mode.
+          $lcExe = "C:\Program Files\Unity\2021.3.36f1\Editor\Data\Resources\Licensing\Client\Unity.Licensing.Client.exe"
+          if (Test-Path $lcExe) {
+            New-NetFirewallRule -DisplayName "Block Unity Licensing Client" `
+              -Direction Outbound -Program $lcExe -Action Block -ErrorAction SilentlyContinue
+            Write-Host "Firewall rule created to block Licensing Client network access"
           } else {
-            Write-Host "Licensing Client not found at expected path, listing:"
-            Get-ChildItem -Path "C:\Program Files\Unity\2021.3.36f1\Editor\Data\Resources" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
+            Write-Host "WARNING: Licensing Client not found at: $lcExe"
           }
         shell: pwsh
 
