@@ -148,26 +148,56 @@ jobs:
           Write-Host "License files written to all candidate locations."
         shell: pwsh
 
-      - name: "[Pre-install] Try CLI Activation (fallback)"
-        continue-on-error: true
+      - name: "[Pre-install] Activate via Unity CLI"
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         run: |
           $unityExe = "C:\Program Files\Unity\2021.3.36f1\Editor\Unity.exe"
-          if (Test-Path $unityExe) {
-            Write-Host "Attempting Unity CLI activation with: $unityExe"
-            $process = Start-Process -FilePath $unityExe -ArgumentList @(
-              "-batchmode", "-nographics", "-quit",
-              "-logFile", "$env:GITHUB_WORKSPACE\activation.log",
-              "-createManualActivationFile"
-            ) -Wait -PassThru -NoNewWindow
-            Write-Host "Activation attempt exit code: $($process.ExitCode)"
-            if (Test-Path "$env:GITHUB_WORKSPACE\activation.log") {
-              Get-Content "$env:GITHUB_WORKSPACE\activation.log" -Tail 30
-            }
-            Get-ChildItem -Path $env:GITHUB_WORKSPACE -Filter "*.alf" -ErrorAction SilentlyContinue
-          } else {
-            Write-Host "Unity not yet installed at expected path, skipping CLI activation"
+
+          # Method 1: Try direct Unity CLI activation with credentials
+          Write-Host "=== Method 1: Unity CLI with -username/-password ==="
+          $process = Start-Process -FilePath $unityExe -ArgumentList @(
+            "-batchmode", "-nographics", "-quit",
+            "-logFile", "$env:GITHUB_WORKSPACE\activation-method1.log",
+            "-username", $env:UNITY_EMAIL,
+            "-password", $env:UNITY_PASSWORD
+          ) -Wait -PassThru -NoNewWindow
+          Write-Host "Method 1 exit code: $($process.ExitCode)"
+          if (Test-Path "$env:GITHUB_WORKSPACE\activation-method1.log") {
+            Get-Content "$env:GITHUB_WORKSPACE\activation-method1.log" -Tail 30
           }
+
+          # Check if license is now active
+          $licCheck = Get-ChildItem -Path "C:\ProgramData\Unity" -Filter "*.ulf" -ErrorAction SilentlyContinue
+          if ($licCheck) {
+            Write-Host "License file found after Method 1: $($licCheck.FullName)"
+            exit 0
+          }
+
+          # Method 2: Create manual activation file (.alf) for fallback
+          Write-Host "=== Method 2: Generate .alf for manual activation ==="
+          $process2 = Start-Process -FilePath $unityExe -ArgumentList @(
+            "-batchmode", "-nographics", "-quit",
+            "-logFile", "$env:GITHUB_WORKSPACE\activation-method2.log",
+            "-createManualActivationFile"
+          ) -Wait -PassThru -NoNewWindow
+          Write-Host "Method 2 exit code: $($process2.ExitCode)"
+          if (Test-Path "$env:GITHUB_WORKSPACE\activation-method2.log") {
+            Get-Content "$env:GITHUB_WORKSPACE\activation-method2.log" -Tail 30
+          }
+          $alfFiles = Get-ChildItem -Path "." -Filter "*.alf" -ErrorAction SilentlyContinue
+          if ($alfFiles) {
+            Write-Host "ALF file generated: $($alfFiles.FullName)"
+            Copy-Item $alfFiles.FullName -Destination "$env:GITHUB_WORKSPACE\"
+          }
+
+          # List what's in the license directories
+          Write-Host "=== License directories ==="
+          Get-ChildItem -Path "C:\ProgramData\Unity" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
+          Get-ChildItem -Path "$env:LOCALAPPDATA\Unity" -Recurse -ErrorAction SilentlyContinue | Select-Object FullName
         shell: pwsh
+        continue-on-error: true
 
       ###########################
       #    Unity UWP Build      #
