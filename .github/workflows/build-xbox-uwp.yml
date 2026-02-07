@@ -248,6 +248,23 @@ jobs:
         run: choco install nuget.commandline -y --no-progress
         shell: pwsh
 
+      - name: "[Build] Patch UWP project (remove WindowsMobile SDK ref)"
+        run: |
+          # Unity may generate a reference to WindowsMobile extension SDK which
+          # isn't installed on the runner. Remove it from all .vcxproj files.
+          $vcxFiles = Get-ChildItem -Path "build\WSAPlayer" -Filter "*.vcxproj" -Recurse
+          foreach ($f in $vcxFiles) {
+            $content = Get-Content $f.FullName -Raw
+            if ($content -match 'WindowsMobile') {
+              Write-Host "Patching $($f.FullName) - removing WindowsMobile SDK reference"
+              $content = $content -replace '(?s)<SDKReference\s+Include="WindowsMobile[^"]*"[^/]*/>\s*', ''
+              $content = $content -replace '(?s)<SDKReference\s+Include="WindowsMobile[^"]*"[^<]*</SDKReference>\s*', ''
+              Set-Content $f.FullName -Value $content -NoNewline
+            }
+          }
+          Write-Host "Project patching complete."
+        shell: pwsh
+
       - name: "[Build] Find and build UWP solution"
         run: |
           $slnPath = Get-ChildItem -Path "build\WSAPlayer" -Filter "*.sln" -Recurse | Select-Object -First 1
