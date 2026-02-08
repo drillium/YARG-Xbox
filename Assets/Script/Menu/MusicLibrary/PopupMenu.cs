@@ -240,7 +240,7 @@ namespace YARG.Menu.MusicLibrary
 
                 CreateItem("CopySongChecksum", () =>
                 {
-                    GUIUtility.systemCopyBuffer = song.Hash.ToString();
+                    try { GUIUtility.systemCopyBuffer = song.Hash.ToString(); } catch { /* Clipboard not available on UWP */ }
 
                     gameObject.SetActive(false);
                 });

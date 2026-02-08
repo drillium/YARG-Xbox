@@ -153,7 +153,8 @@ namespace YARG.Gameplay
 
                             VIDEO_PATH = Path.Combine(PathHelper.PersistentDataPath, sngStream.Name);
                             using var tmp = File.OpenWrite(VIDEO_PATH);
-                            File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
+                            try { File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden); }
+                            catch { /* FileAttributes.Temporary/Hidden may not be supported on UWP */ }
                             result.Stream.CopyTo(tmp);
                             _videoPlayer.url = VIDEO_PATH;
                             break;

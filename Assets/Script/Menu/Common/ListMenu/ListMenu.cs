@@ -194,6 +194,7 @@ namespace YARG.Menu.ListMenu
                 return;
             }
 
+            if (Mouse.current == null) return;
             var delta = Mouse.current.scroll.ReadValue().y * Time.deltaTime;
 
             if (delta > 0f)

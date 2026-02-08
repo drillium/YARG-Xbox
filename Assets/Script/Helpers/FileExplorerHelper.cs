@@ -111,7 +111,7 @@ namespace YARG.Helpers
 #elif UNITY_STANDALONE_LINUX
             Process.Start("xdg-open", folderPath);
 #else
-            GUIUtility.systemCopyBuffer = folderPath;
+            try { GUIUtility.systemCopyBuffer = folderPath; } catch { /* Clipboard not available on UWP */ }
             DialogManager.Instance.ShowMessage(
                 "Path Copied To Clipboard",
                 "Your system does not support the opening of the file explorer dialog, so the path of the folder has " +
@@ -128,7 +128,7 @@ namespace YARG.Helpers
 #elif UNITY_STANDALONE_LINUX
             Process.Start("xdg-open", Path.GetDirectoryName(filePath));
 #else
-            GUIUtility.systemCopyBuffer = filePath;
+            try { GUIUtility.systemCopyBuffer = filePath; } catch { /* Clipboard not available on UWP */ }
             DialogManager.Instance.ShowMessage(
                 "Path Copied To Clipboard",
                 "Your system does not support the opening of the file explorer dialog, so the path of the folder has " +

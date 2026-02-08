@@ -113,17 +113,17 @@ namespace YARG.Menu.Main
 
         public void OpenDiscord()
         {
-            Application.OpenURL("https://discord.gg/sqpu4R552r");
+            try { Application.OpenURL("https://discord.gg/sqpu4R552r"); } catch { /* May not be supported on UWP */ }
         }
 
         public void OpenTwitter()
         {
-            Application.OpenURL("https://twitter.com/YARGGame");
+            try { Application.OpenURL("https://twitter.com/YARGGame"); } catch { /* May not be supported on UWP */ }
         }
 
         public void OpenGithub()
         {
-            Application.OpenURL("https://github.com/YARC-Official/YARG");
+            try { Application.OpenURL("https://github.com/YARC-Official/YARG"); } catch { /* May not be supported on UWP */ }
         }
     }
 }

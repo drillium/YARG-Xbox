@@ -197,7 +197,7 @@ namespace YARG.Gameplay
         private void Update()
         {
             // Pause/unpause
-            if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 if ((!IsPractice || PracticeManager.HasSelectedSection) && !DialogManager.Instance.IsDialogShowing)
                 {
@@ -206,7 +206,7 @@ namespace YARG.Gameplay
             }
 
             // Toggle debug text
-            if (Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
+            if (Keyboard.current != null && Keyboard.current.ctrlKey.isPressed && Keyboard.current.tabKey.wasPressedThisFrame)
             {
                 ToggleDebugEnabled();
             }

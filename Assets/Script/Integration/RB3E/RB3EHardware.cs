@@ -52,7 +52,12 @@ namespace YARG.Integration.RB3E
                 StageKitInterpreter.OnLedEvent += HandleLedEvent;
                 //Bonus Effects are ignored, since the stage kit doesn't seem to do anything with them.
 
-                _sendClient = new UdpClient();
+                try { _sendClient = new UdpClient(); }
+                catch (Exception e)
+                {
+                    YargLogger.LogException(e, "Failed to create RB3E UDP client. Feature not supported on this platform.");
+                    return;
+                }
             }
             else
             {

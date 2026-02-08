@@ -97,7 +97,7 @@ namespace YARG.Menu
             {
                 case "Discord":
                     // These don't have urls, so just copy to the clipboard
-                    GUIUtility.systemCopyBuffer = arg;
+                    try { GUIUtility.systemCopyBuffer = arg; } catch { /* Clipboard not available on UWP */ }
                     return;
                 case "Email":
                     url = $"mailto:{arg}";
@@ -131,7 +131,7 @@ namespace YARG.Menu
                     break;
             }
 
-            Application.OpenURL(url);
+            try { Application.OpenURL(url); } catch { /* OpenURL may not be supported on all platforms */ }
         }
     }
 }
