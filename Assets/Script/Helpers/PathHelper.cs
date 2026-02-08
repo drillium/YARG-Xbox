@@ -101,14 +101,9 @@ namespace YARG.Helpers
             // Get other paths that are only allowed on the main thread
             ApplicationDataPath = SanitizePath(Application.dataPath);
             ExecutablePath = Directory.GetParent(ApplicationDataPath)?.FullName;
-#if UNITY_WSA && !UNITY_EDITOR
-            // On UWP/Xbox, StreamingAssets in the install directory may not be directly
-            // accessible. Use a path under PersistentDataPath instead, where files can
-            // be copied to and read from at runtime.
-            StreamingAssetsPath = SanitizePath(Path.Combine(PersistentDataPath, "StreamingAssets"));
-#else
+            // On UWP/Xbox, Application.streamingAssetsPath points to the read-only
+            // install directory, which is accessible for reading in Dev Mode.
             StreamingAssetsPath = SanitizePath(Application.streamingAssetsPath);
-#endif
             // Get song scanning paths
             SongCachePath = Path.Combine(PersistentDataPath, "songcache.bin");
             BadSongsPath = Path.Combine(PersistentDataPath, "badsongs.txt");
