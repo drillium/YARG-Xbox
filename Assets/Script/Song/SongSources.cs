@@ -214,7 +214,8 @@ namespace YARG.Song
                 using var httpClient = new HttpClient(filter);
                 httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("YARG");
 
-                var response = await httpClient.GetAsync(new Uri(SOURCE_COMMIT_URL));
+                using var cts = new System.Threading.CancellationTokenSource(5000);
+                var response = await httpClient.GetAsync(new Uri(SOURCE_COMMIT_URL)).AsTask(cts.Token);
                 response.EnsureSuccessStatusCode();
 
                 var jsonText = await response.Content.ReadAsStringAsync();
@@ -269,7 +270,8 @@ namespace YARG.Song
                 var httpClient = new Windows.Web.Http.HttpClient();
                 httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("YARG");
 
-                var response = await httpClient.GetAsync(new Uri(SOURCE_ZIP_URL));
+                using var dlCts = new System.Threading.CancellationTokenSource(30000);
+                var response = await httpClient.GetAsync(new Uri(SOURCE_ZIP_URL)).AsTask(dlCts.Token);
                 response.EnsureSuccessStatusCode();
 
                 using (var stream = await response.Content.ReadAsInputStreamAsync())
