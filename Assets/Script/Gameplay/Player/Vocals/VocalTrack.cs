@@ -495,5 +495,14 @@ namespace YARG.Gameplay.Player
 
             ResetPracticeSection();
         }
+
+        protected override void GameplayDestroy()
+        {
+            // Release the RenderTexture created in InitializeRenderTexture
+            if (_trackCamera != null && _trackCamera.targetTexture != null)
+            {
+                _trackCamera.targetTexture.Release();
+            }
+        }
     }
 }

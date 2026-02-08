@@ -154,5 +154,14 @@ namespace YARG.Gameplay.HUD
             _textNotifications.ForceReset();
             _countdownDisplay.ForceReset();
         }
+
+        private void OnDestroy()
+        {
+            // Release the RenderTexture that was created for this track view
+            if (TrackImage != null && TrackImage.texture is RenderTexture rt)
+            {
+                rt.Release();
+            }
+        }
     }
 }

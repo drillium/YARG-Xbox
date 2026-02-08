@@ -142,6 +142,21 @@ namespace YARG.Gameplay
             }
         }
 
+        protected override void GameplayDestroy()
+        {
+            if (_soundTexture != null)
+            {
+                Destroy(_soundTexture);
+                _soundTexture = null;
+            }
+
+            if (_albumCover != null)
+            {
+                Destroy(_albumCover);
+                _albumCover = null;
+            }
+        }
+
         public async void Update()
         {
             if (_soundTexture != null && !_updatingFFT)

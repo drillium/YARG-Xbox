@@ -339,6 +339,12 @@ namespace YARG.Gameplay
             // The venue is dealt with in the GameManager via Time.timeScale
         }
 
+        protected override void GameplayDestroy()
+        {
+            _videoPlayer.prepareCompleted -= OnVideoPrepared;
+            _videoPlayer.seekCompleted -= OnVideoSeeked;
+        }
+
         public void Dispose()
         {
             if (VIDEO_PATH != null)
