@@ -118,17 +118,24 @@ namespace YARG
                     YargLogger.LogException(ex);
                 }
             }
-            GC.Collect();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized);
         }
 
         public async void Dispose()
         {
             if (!_disposed)
             {
-                await Wait();
+                _disposed = true;
+                try
+                {
+                    await Wait();
+                }
+                catch (Exception e)
+                {
+                    YargLogger.LogException(e, "Error during loading context disposal.");
+                }
                 LoadingScreen.Instance.gameObject.SetActive(false);
                 Navigator.Instance.DisableMenuInputs = false;
-                _disposed = true;
             }
             GC.SuppressFinalize(this);
         }

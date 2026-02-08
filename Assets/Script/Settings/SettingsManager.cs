@@ -289,33 +289,48 @@ namespace YARG.Settings
 
         public static ISettingType GetSettingByName(string name)
         {
-            var field = typeof(SettingContainer).GetProperty(name);
-
-            if (field == null)
+            try
             {
-                throw new Exception($"The field `{name}` does not exist.");
+                var field = typeof(SettingContainer).GetProperty(name);
+
+                if (field == null)
+                {
+                    throw new Exception($"The field `{name}` does not exist.");
+                }
+
+                var value = field.GetValue(Settings);
+
+                if (value == null)
+                {
+                    YargLogger.LogFormatWarning("`{0}` has a value of null. This might create errors.", name);
+                }
+
+                return (ISettingType) value;
             }
-
-            var value = field.GetValue(Settings);
-
-            if (value == null)
+            catch (Exception e)
             {
-                YargLogger.LogFormatWarning("`{0}` has a value of null. This might create errors.", name);
+                YargLogger.LogException(e, $"Failed to get setting '{name}'.");
+                return null;
             }
-
-            return (ISettingType) value;
         }
 
         public static void InvokeButton(string name)
         {
-            var method = typeof(SettingContainer).GetMethod(name);
-
-            if (method == null)
+            try
             {
-                throw new Exception($"The method `{name}` does not exist.");
-            }
+                var method = typeof(SettingContainer).GetMethod(name);
 
-            method.Invoke(Settings, null);
+                if (method == null)
+                {
+                    throw new Exception($"The method `{name}` does not exist.");
+                }
+
+                method.Invoke(Settings, null);
+            }
+            catch (Exception e)
+            {
+                YargLogger.LogException(e, $"Failed to invoke button '{name}'.");
+            }
         }
 
         public static Tab GetTabByName(string name)

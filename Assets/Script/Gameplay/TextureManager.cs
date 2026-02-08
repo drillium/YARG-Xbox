@@ -28,6 +28,7 @@ namespace YARG.Gameplay
         private float[] _prevFft = new float[FFT_SIZE / 2];
         private float[] _rawFft = new float[FFT_SIZE * 2];
         private float[] _rawWave = new float[FFT_SIZE];
+        private bool _updatingFFT;
 
         private static int _soundTexId = Shader.PropertyToID("_Yarg_SoundTex");
         private static int _sourceIconId = Shader.PropertyToID("_Yarg_SourceIcon");
@@ -143,14 +144,22 @@ namespace YARG.Gameplay
 
         public async void Update()
         {
-            if (_soundTexture != null)
+            if (_soundTexture != null && !_updatingFFT)
             {
-                var pixelData = _soundTexture.GetPixelData<Byte>(0);
-                await UniTask.RunOnThreadPool(() =>
+                _updatingFFT = true;
+                try
                 {
-                    UpdateFFT(pixelData);
-                });
-                _soundTexture.Apply(false, false);
+                    var pixelData = _soundTexture.GetPixelData<Byte>(0);
+                    await UniTask.RunOnThreadPool(() =>
+                    {
+                        UpdateFFT(pixelData);
+                    });
+                    _soundTexture.Apply(false, false);
+                }
+                finally
+                {
+                    _updatingFFT = false;
+                }
             }
         }
     }

@@ -72,7 +72,9 @@ namespace YARG.Input
             InputSystem.onDeviceChange += OnDeviceChange;
 
             // Notify of all current devices
-            ToastManager.ToastInformation("Devices found: " + (Microphone.devices.Length + InputSystem.devices.Count));
+            int micCount = 0;
+            try { micCount = Microphone.devices.Length; } catch (Exception) { /* Mic enumeration may fail on UWP */ }
+            ToastManager.ToastInformation("Devices found: " + (micCount + InputSystem.devices.Count));
             foreach (var device in InputSystem.devices)
             {
                 if (!device.enabled)
