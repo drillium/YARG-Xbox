@@ -105,6 +105,8 @@ namespace YARG.Gameplay
             // Disable until everything's loaded
             enabled = false;
 
+            try
+            {
             YargLogger.LogFormatInfo("Loading song {0} - {1}", Song.Name, Song.Artist);
 
             if (ReplayInfo != null)
@@ -239,6 +241,13 @@ namespace YARG.Gameplay
             enabled = true;
             IsSongStarted = true;
             _songStarted?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Fatal error during song loading!");
+                ToastManager.ToastError("Failed to load song!");
+                global.LoadScene(SceneIndex.Menu);
+            }
         }
 
         private bool LoadReplay()

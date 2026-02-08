@@ -88,6 +88,8 @@ namespace YARG.Song
                     return;
                 }
 
+                try
+                {
 #nullable enable
                 // Look for the icon file in the different folders
                 Texture2D? texture = null;
@@ -118,6 +120,11 @@ namespace YARG.Song
                 _sprite = Sprite.Create(texture,
                     new Rect(0, 0, texture.width, -texture.height),
                     new Vector2(0.5f, 0.5f));
+                }
+                catch (Exception ex)
+                {
+                    YargLogger.LogException(ex, "Error loading source sprite.");
+                }
             }
         }
 

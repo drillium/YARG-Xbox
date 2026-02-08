@@ -55,6 +55,7 @@ namespace SFB
         /// <returns>Returns array of chosen paths. Zero length array when cancelled</returns>
         public static string[] OpenFilePanel(string title, string directory, ExtensionFilter[] extensions, bool multiselect)
         {
+            if (_platformWrapper == null) return Array.Empty<string>();
             return _platformWrapper.OpenFilePanel(title, directory, extensions, multiselect);
         }
 
@@ -82,6 +83,7 @@ namespace SFB
         /// <param name="cb">Callback")</param>
         public static void OpenFilePanelAsync(string title, string directory, ExtensionFilter[] extensions, bool multiselect, Action<string[]> cb)
         {
+            if (_platformWrapper == null) { cb?.Invoke(Array.Empty<string>()); return; }
             _platformWrapper.OpenFilePanelAsync(title, directory, extensions, multiselect, cb);
         }
 
@@ -95,6 +97,7 @@ namespace SFB
         /// <returns>Returns array of chosen paths. Zero length array when cancelled</returns>
         public static string[] OpenFolderPanel(string title, string directory, bool multiselect)
         {
+            if (_platformWrapper == null) return Array.Empty<string>();
             return _platformWrapper.OpenFolderPanel(title, directory, multiselect);
         }
 
@@ -108,6 +111,7 @@ namespace SFB
         /// <param name="cb">Callback")</param>
         public static void OpenFolderPanelAsync(string title, string directory, bool multiselect, Action<string[]> cb)
         {
+            if (_platformWrapper == null) { cb?.Invoke(Array.Empty<string>()); return; }
             _platformWrapper.OpenFolderPanelAsync(title, directory, multiselect, cb);
         }
 
@@ -135,6 +139,7 @@ namespace SFB
         /// <returns>Returns chosen path. Empty string when cancelled</returns>
         public static string SaveFilePanel(string title, string directory, string defaultName, ExtensionFilter[] extensions)
         {
+            if (_platformWrapper == null) return string.Empty;
             return _platformWrapper.SaveFilePanel(title, directory, defaultName, extensions);
         }
 
@@ -162,6 +167,7 @@ namespace SFB
         /// <param name="cb">Callback")</param>
         public static void SaveFilePanelAsync(string title, string directory, string defaultName, ExtensionFilter[] extensions, Action<string> cb)
         {
+            if (_platformWrapper == null) { cb?.Invoke(string.Empty); return; }
             _platformWrapper.SaveFilePanelAsync(title, directory, defaultName, extensions, cb);
         }
     }

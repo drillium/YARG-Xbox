@@ -65,31 +65,38 @@ namespace YARG.Helpers.Extensions
         private static SongEntry _current = null;
         public static async void LoadAlbumCover(this RawImage rawImage, SongEntry songEntry, CancellationToken cancellationToken)
         {
-            _current = songEntry;
-            using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData);
-            // Everything that happens after this conditional should only happen *once*
-            // There's no reason to create and destroy texture objects if they're just gonna be overriden
-            if (_current != songEntry)
+            try
             {
-                return;
+                _current = songEntry;
+                using var image = await UniTask.RunOnThreadPool(songEntry.LoadAlbumData);
+                // Everything that happens after this conditional should only happen *once*
+                // There's no reason to create and destroy texture objects if they're just gonna be overriden
+                if (_current != songEntry)
+                {
+                    return;
+                }
+
+                lock (rawImage)
+                {
+                    // Dispose of the old texture (prevent memory leaks)
+                    UnityEngine.Object.Destroy(rawImage.texture);
+
+                    if (image != null && !cancellationToken.IsCancellationRequested)
+                    {
+                        rawImage.texture = image.LoadTexture(false);
+                        rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
+                        rawImage.color = Color.white;
+                    }
+                    else
+                    {
+                        rawImage.texture = null;
+                        rawImage.color = Color.clear;
+                    }
+                }
             }
-
-            lock (rawImage)
+            catch (Exception)
             {
-                // Dispose of the old texture (prevent memory leaks)
-                UnityEngine.Object.Destroy(rawImage.texture);
-
-                if (image != null && !cancellationToken.IsCancellationRequested)
-                {
-                    rawImage.texture = image.LoadTexture(false);
-                    rawImage.uvRect = new Rect(0f, 0f, 1f, -1f);
-                    rawImage.color = Color.white;
-                }
-                else
-                {
-                    rawImage.texture = null;
-                    rawImage.color = Color.clear;
-                }
+                // Silently handle album art loading failures
             }
         }
 

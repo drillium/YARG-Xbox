@@ -50,6 +50,8 @@ namespace YARG.Gameplay
             // We don't need to update unless we're using a video
             enabled = false;
 
+            try
+            {
             using var result = VenueLoader.GetVenue(GameManager.Song, out _source);
             if (result == null)
             {
@@ -172,6 +174,11 @@ namespace YARG.Gameplay
                     _backgroundImage.uvRect = new Rect(0f, 0f, 1f, -1f);
                     _backgroundImage.gameObject.SetActive(true);
                     break;
+            }
+            }
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Error loading background/venue.");
             }
         }
 

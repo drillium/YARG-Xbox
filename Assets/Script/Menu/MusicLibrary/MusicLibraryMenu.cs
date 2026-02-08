@@ -703,23 +703,30 @@ namespace YARG.Menu.MusicLibrary
 
         private async void StartPreview(double delay, CancellationTokenSource canceller)
         {
-            if (_currentSong == null)
+            try
             {
-                return;
-            }
+                if (_currentSong == null)
+                {
+                    return;
+                }
 
-            const double FADE_DURATION = 1.25;
-            float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
-            if (previewVolume == 0)
-            {
-                return;
-            }
+                const double FADE_DURATION = 1.25;
+                float previewVolume = SettingsManager.Settings.PreviewVolume.Value;
+                if (previewVolume == 0)
+                {
+                    return;
+                }
 
-            var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
-                delay, FADE_DURATION, canceller);
-            if (context != null)
+                var context = await PreviewContext.Create(_currentSong, previewVolume, GlobalVariables.State.SongSpeed,
+                    delay, FADE_DURATION, canceller);
+                if (context != null)
+                {
+                    _previewContext = context;
+                }
+            }
+            catch (Exception)
             {
-                _previewContext = context;
+                // Silently handle preview loading failures
             }
         }
 

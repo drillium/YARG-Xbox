@@ -1,12 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using YARG.Settings;
-using YARG.Helpers.Extensions;
 using YARG.Core.Audio;
+using YARG.Core.Logging;
 using YARG.Core.Song;
+using YARG.Helpers.Extensions;
+using YARG.Settings;
 using YARG.Song;
 using System.Threading.Tasks;
 
@@ -37,16 +39,23 @@ namespace YARG.Menu.Persistent
         {
             _songText.text = _artistText.text = string.Empty;
 
-            // Wait until the loading is done
-            await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
-
-            // Disable if there are no songs to play
-            if (SongContainer.Count <= 0)
+            try
             {
-                gameObject.SetActive(false);
-                return;
+                // Wait until the loading is done
+                await UniTask.WaitUntil(() => !LoadingScreen.IsActive);
+
+                // Disable if there are no songs to play
+                if (SongContainer.Count <= 0)
+                {
+                    gameObject.SetActive(false);
+                    return;
+                }
+                NextSong();
             }
-            NextSong();
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Error in MusicPlayer.OnEnable");
+            }
         }
 
         private void OnDisable()
@@ -61,54 +70,61 @@ namespace YARG.Menu.Persistent
         private static Task<StemMixer> _current;
         public async void NextSong()
         {
-            const int MAX_TRIES = 10;
-            for (int tries = 0; tries < MAX_TRIES; tries++)
+            try
             {
-                var entry = SongContainer.GetRandomSong();
-                if (entry == _nowPlaying)
+                const int MAX_TRIES = 10;
+                for (int tries = 0; tries < MAX_TRIES; tries++)
                 {
-                    continue;
-                }
-                _nowPlaying = entry;
-
-                Task<StemMixer> task;
-                lock (_lock)
-                {
-                    const float SPEED = 1f;
-                    _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
-                }
-
-                var mixer = await task;
-                if (mixer == null)
-                {
-                    continue;
-                }
-
-                lock (_lock)
-                {
-                    if (_current != task || !gameObject.activeSelf)
+                    var entry = SongContainer.GetRandomSong();
+                    if (entry == _nowPlaying)
                     {
-                        mixer.Dispose();
+                        continue;
+                    }
+                    _nowPlaying = entry;
+
+                    Task<StemMixer> task;
+                    lock (_lock)
+                    {
+                        const float SPEED = 1f;
+                        _current = task = Task.Run(() => entry.LoadAudio(SPEED, SettingsManager.Settings.MusicPlayerVolume.Value, SongStem.Crowd));
+                    }
+
+                    var mixer = await task;
+                    if (mixer == null)
+                    {
                         continue;
                     }
 
-                    _mixer?.Dispose();
-                    _mixer = mixer;
-                    _mixer.SongEnd += () =>
+                    lock (_lock)
                     {
-                        _mixer.Dispose();
-                        _mixer = null;
-                        NextSong();
-                    };
-                    _mixer.Play(true);
+                        if (_current != task || !gameObject.activeSelf)
+                        {
+                            mixer.Dispose();
+                            continue;
+                        }
 
-                    _songText.text = _nowPlaying.Name;
-                    _artistText.text = _nowPlaying.Artist;
-                    _playPauseButton.sprite = _pauseSprite;
+                        _mixer?.Dispose();
+                        _mixer = mixer;
+                        _mixer.SongEnd += () =>
+                        {
+                            _mixer.Dispose();
+                            _mixer = null;
+                            NextSong();
+                        };
+                        _mixer.Play(true);
+
+                        _songText.text = _nowPlaying.Name;
+                        _artistText.text = _nowPlaying.Artist;
+                        _playPauseButton.sprite = _pauseSprite;
+                    }
+                    return;
                 }
-                return;
+                _nowPlaying = null;
             }
-            _nowPlaying = null;
+            catch (Exception ex)
+            {
+                YargLogger.LogException(ex, "Error in MusicPlayer.NextSong");
+            }
         }
 
         public void UpdateVolume(double volume)
