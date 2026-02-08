@@ -101,7 +101,8 @@ Assets/YargInput.cs
 # Manually-imported input packages
 # For users who have trouble with the package manager
 Packages/com.thenathannator.hidrogen/
-Packages/com.thenathannator.plasticband/
+# PlasticBand embedded with GameInput/UWP fix (UNITY_WSA conditional added)
+# Packages/com.thenathannator.plasticband/
 
 # Other
 Assets/Nyx
