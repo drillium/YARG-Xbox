@@ -7,6 +7,7 @@ using UnityEngine;
 using YARG.Audio;
 using YARG.Core.Audio;
 using YARG.Core.Input;
+using YARG.Helpers;
 using YARG.Input;
 using YARG.Localization;
 using YARG.Player;
@@ -141,7 +142,7 @@ namespace YARG.Menu.Calibrator
 
                     const float SPEED = 1f;
                     const double VOLUME = 1.0;
-                    var file = Path.Combine(Application.streamingAssetsPath, "calibration_music.ogg");
+                    var file = Path.Combine(PathHelper.StreamingAssetsPath, "calibration_music.ogg");
                     _mixer = GlobalAudioHandler.LoadCustomFile(file, SPEED, VOLUME);
                     _mixer.SongEnd += OnAudioEnd;
                     _mixer.Play(true);

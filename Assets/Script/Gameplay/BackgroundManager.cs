@@ -10,6 +10,7 @@ using UnityEngine.Video;
 using YARG.Core.IO;
 using YARG.Core.Logging;
 using YARG.Core.Venue;
+using YARG.Helpers;
 using YARG.Helpers.Extensions;
 using YARG.Settings;
 using YARG.Venue;
@@ -150,7 +151,7 @@ namespace YARG.Gameplay
                             // UNFORTUNATELY, Videoplayer can't use streams, so video files
                             // MUST BE FULLY DECRYPTED
 
-                            VIDEO_PATH = Path.Combine(Application.persistentDataPath, sngStream.Name);
+                            VIDEO_PATH = Path.Combine(PathHelper.PersistentDataPath, sngStream.Name);
                             using var tmp = File.OpenWrite(VIDEO_PATH);
                             File.SetAttributes(VIDEO_PATH, File.GetAttributes(VIDEO_PATH) | FileAttributes.Temporary | FileAttributes.Hidden);
                             result.Stream.CopyTo(tmp);
