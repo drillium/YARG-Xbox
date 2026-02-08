@@ -78,10 +78,10 @@ namespace YARG.Input
             foreach (var device in InputSystem.devices)
             {
                 // Log all devices for debugging input issues on Xbox
-                YargLogger.LogFormatInfo("Input device: {0} (type={1}, enabled={2}, interface={3})",
-                    device.displayName, device.GetType().Name, device.enabled,
-                    device.description.interfaceName ?? "null");
-                YargLogger.LogFormatInfo("  Description: {0}", device.description.ToJson());
+                YargLogger.LogFormatInfo("Input device: {0} type={1} enabled={2}",
+                    device.displayName, device.GetType().Name, device.enabled);
+                YargLogger.LogFormatInfo("  Interface: {0} Desc: {1}",
+                    device.description.interfaceName ?? "null", device.description.ToJson());
 
                 if (!device.enabled)
                 {

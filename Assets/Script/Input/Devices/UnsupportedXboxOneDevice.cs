@@ -44,8 +44,8 @@ namespace YARG.Input.Devices
             base.OnAdded();
 
             // Log what device was caught by the generic matcher for debugging
-            YargLogger.LogFormatWarning("UnsupportedXboxOneDevice caught device: {0} (description: {1})",
-                description.product ?? "unknown", description.ToJson());
+            YargLogger.LogFormatWarning("UnsupportedXboxOneDevice caught: {0}",
+                description.ToJson());
 
             // Disable device so it doesn't show up in the device list
             // Will still show up in device description logging
