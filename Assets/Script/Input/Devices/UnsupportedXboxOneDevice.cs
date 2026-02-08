@@ -2,6 +2,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Layouts;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.InputSystem.Utilities;
+using YARG.Core.Logging;
 
 namespace YARG.Input.Devices
 {
@@ -41,6 +42,10 @@ namespace YARG.Input.Devices
         protected override void OnAdded()
         {
             base.OnAdded();
+
+            // Log what device was caught by the generic matcher for debugging
+            YargLogger.LogFormatWarning("UnsupportedXboxOneDevice caught device: {0} (description: {1})",
+                description.product ?? "unknown", description.ToJson());
 
             // Disable device so it doesn't show up in the device list
             // Will still show up in device description logging

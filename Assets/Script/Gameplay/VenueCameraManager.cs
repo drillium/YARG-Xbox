@@ -45,6 +45,8 @@ namespace YARG.Gameplay
 
         private void OnDestroy()
         {
+            RenderPipelineManager.beginCameraRendering -= OnPreCameraRender;
+            RenderPipelineManager.endCameraRendering -= OnPostCameraRender;
             UniversalRenderPipelineAsset.renderScale = _originalFactor;
         }
 

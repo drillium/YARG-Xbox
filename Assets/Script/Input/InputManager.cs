@@ -77,6 +77,12 @@ namespace YARG.Input
             ToastManager.ToastInformation("Devices found: " + (micCount + InputSystem.devices.Count));
             foreach (var device in InputSystem.devices)
             {
+                // Log all devices for debugging input issues on Xbox
+                YargLogger.LogFormatInfo("Input device: {0} (type={1}, enabled={2}, interface={3})",
+                    device.displayName, device.GetType().Name, device.enabled,
+                    device.description.interfaceName ?? "null");
+                YargLogger.LogFormatInfo("  Description: {0}", device.description.ToJson());
+
                 if (!device.enabled)
                 {
                     _disabledDevices.Add(device);
