@@ -204,6 +204,7 @@ namespace YARG.Menu.Persistent
         /// </summary>
         public void SubmitAndClearDialog()
         {
+            if (_currentDialog == null) return;
             _currentDialog.Submit();
             ClearDialog();
         }

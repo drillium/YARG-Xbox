@@ -144,7 +144,7 @@ namespace YARG.Menu.ScoreScreen
                 GlobalVariables.State = PersistentState.Default;
             }
 
-            Navigator.Instance.PopScheme();
+            Navigator.Instance?.PopScheme();
         }
 
         private void CreateScoreCards(ScoreScreenStats scoreScreenStats)

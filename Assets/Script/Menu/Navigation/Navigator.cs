@@ -195,6 +195,7 @@ namespace YARG.Menu.Navigation
 
         public void PopScheme()
         {
+            if (_schemeStack.Count <= 0) return;
             var scheme = _schemeStack.Pop();
             scheme.PopCallback?.Invoke();
             UpdateHelpBar().Forget();
@@ -217,6 +218,8 @@ namespace YARG.Menu.Navigation
             // Wait one frame to update, in case another one gets pushed.
             // This prevents the music player from resetting across schemes.
             await UniTask.WaitForEndOfFrame(this);
+
+            if (HelpBar.Instance == null) return;
 
             if (_schemeStack.Count <= 0)
             {
